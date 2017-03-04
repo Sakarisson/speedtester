@@ -1,0 +1,25 @@
+{
+  "name": "speedtester",
+  "version": "1.0.0",
+  "description": "A module that tests internet speed and logs results",
+  "main": "app.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sakarisson/speedtester.git"
+  },
+  "author": "Kristian Sakarisson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sakarisson/speedtester/issues"
+  },
+  "homepage": "https://github.com/Sakarisson/speedtester#readme",
+  "devDependencies": {
+    "standard": "^9.0.0"
+  },
+  "dependencies": {
+    "speedtest-net": "^1.2.12"
+  }
+}
