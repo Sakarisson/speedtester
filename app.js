@@ -1,8 +1,26 @@
 require('dotenv').config()
 const mysql = require('mysql')
 const speedTest = require('speedtest-net')
+const async = require('async')
 
-function checkSpeed(callback) {
+function connectToDatabase (callback) {
+  const connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_DATABASE
+  })
+
+  connection.connect((err) => {
+    if (err) {
+      callback(err)
+      return
+    }
+    callback(null, connection)
+  })
+}
+
+function checkSpeed (connection, callback) {
   const test = speedTest({
     maxTime: 60000, // 1 minute
     serverId: 462   // Faroese Telecom server
@@ -17,41 +35,47 @@ function checkSpeed(callback) {
   })
 
   test.on('data', (data) => {
-    console.dir(data)
+    callback(null, data, connection)
   })
 
   test.on('error', (err) => {
-    console.error(err)
+    callback(err)
   })
 }
 
-function connectToDatabase(callback) {
-  const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_DATABASE
-  })
-
-  connection.connect((err) => {
-    if(err) {
+function logSpeed (speedObject, connection, callback) {
+  connection.query(`
+  INSERT INTO measurements (server_id, ping, download_speed, upload_speed)
+  VALUES(
+    ${speedObject.server.id},
+    ${speedObject.server.ping},
+    ${speedObject.speeds.download},
+    ${speedObject.speeds.upload}
+  )
+  `, (err) => {
+    if (err) {
       callback(err)
       return
     }
-    callback(null, connection)
+    callback(null, 'success!')
   })
 }
 
-connectToDatabase((err, connection) => {
-  if(err) {
-    console.error(err)
-    return
-  }
-  connection.query(`SELECT * FROM measurements;`, (err, result) => {
-    if(err) {
+function log () {
+  async.waterfall([
+    connectToDatabase,
+    checkSpeed,
+    logSpeed
+  ], (err, res) => {
+    if (err) {
       console.error(err)
       return
     }
-    console.log(result)
+    console.log(res)
   })
-})
+}
+
+log()
+setInterval(() => {
+  log()
+}, process.env.FREQ * 60000)
