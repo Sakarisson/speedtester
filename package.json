@@ -20,6 +20,8 @@
     "standard": "^9.0.0"
   },
   "dependencies": {
+    "dotenv": "^4.0.0",
+    "mysql": "^2.13.0",
     "speedtest-net": "^1.2.12"
   }
 }
